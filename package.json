@@ -1,0 +1,13 @@
+{
+  "name": "direct-job-agent",
+  "version": "1.0.0",
+  "description": "Finds job postings directly on company career pages (Greenhouse, Lever, Ashby, Workday, custom sites) instead of aggregators like LinkedIn/Indeed/Naukrigulf.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0",
+    "firebase-admin": "^12.6.0"
+  }
+}

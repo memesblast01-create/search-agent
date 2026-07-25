@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Direct Source  Job Scanner</title>
+<title>Direct Source — Job Scanner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -37,9 +37,7 @@
     padding: 64px 24px 80px;
   }
 
-  header {
-    margin-bottom: 40px;
-  }
+  header { margin-bottom: 40px; }
 
   .eyebrow {
     font-family: var(--font-mono);
@@ -268,7 +266,7 @@
     <header>
       <div class="eyebrow">Direct source only</div>
       <h1>Skip the boards.<br>Go straight to the source.</h1>
-      <p class="sub">Give it a role and a country. It scans company career pages and their <b>ATS platforms directly</b>  no LinkedIn, no Indeed, no Naukrigulf, no aggregators.</p>
+      <p class="sub">Give it a role and a country. It scans company career pages and their <b>ATS platforms directly</b> no LinkedIn, no Indeed, no Naukrigulf, no aggregators.</p>
     </header>
 
     <form id="searchForm">
@@ -284,7 +282,7 @@
     </form>
 
     <div class="scan" id="scanPanel">
-      <div>scanning platforms </div>
+      <div>scanning platforms —</div>
       <div class="scan-row" id="scanRow">
         <span class="scan-node" data-node="greenhouse">Greenhouse</span>
         <span class="scan-node" data-node="lever">Lever</span>
@@ -382,7 +380,8 @@
 
         if (!res.ok) throw new Error(data.error || 'Search failed');
 
-        metaLine.textContent = `${data.candidatesFound} pages scanned · ${data.jobsExtracted} direct listings found`;
+        metaLine.textContent = `${data.candidatesFound} pages scanned · ${data.jobsExtracted} new listings found` +
+          (data.alreadySeenFiltered ? ` · ${data.alreadySeenFiltered} already shown before (hidden)` : '');
         metaLine.classList.add('active');
         renderJobs(data.jobs);
       } catch (err) {

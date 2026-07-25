@@ -14,8 +14,6 @@ module.exports = async (req, res) => {
     return;
   }
 
-  // Clamp to a sane range so one request can't ask for an enormous,
-  // slow, or costly number of results.
   const maxResults = Math.min(Math.max(Number(resultsWanted) || 10, 5), 50);
 
   const apiKey = process.env.SERPAPI_KEY;
@@ -28,16 +26,21 @@ module.exports = async (req, res) => {
     const candidates = await discoverCandidateUrls(jobTitle, country, apiKey, maxResults);
     const jobs = await extractJobs(candidates, jobTitle, country, maxResults);
 
-    let saved = jobs;
+    let responseJobs = jobs;
+    let alreadySeenCount = 0;
+
     if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-      saved = await saveJobsAndFlagNew(jobs, { jobTitle, country });
+      const tagged = await saveJobsAndFlagNew(jobs, { jobTitle, country });
+      responseJobs = tagged.filter((j) => j.isNew);
+      alreadySeenCount = tagged.length - responseJobs.length;
     }
 
     res.status(200).json({
       query: { jobTitle, country },
       candidatesFound: candidates.length,
-      jobsExtracted: saved.length,
-      jobs: saved
+      jobsExtracted: responseJobs.length,
+      alreadySeenFiltered: alreadySeenCount,
+      jobs: responseJobs
     });
   } catch (err) {
     console.error(err);

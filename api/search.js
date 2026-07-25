@@ -8,11 +8,15 @@ module.exports = async (req, res) => {
     return;
   }
 
-  const { jobTitle, country } = req.body || {};
+  const { jobTitle, country, resultsWanted } = req.body || {};
   if (!jobTitle) {
     res.status(400).json({ error: "jobTitle is required" });
     return;
   }
+
+  // Clamp to a sane range so one request can't ask for an enormous,
+  // slow, or costly number of results.
+  const maxResults = Math.min(Math.max(Number(resultsWanted) || 10, 5), 50);
 
   const apiKey = process.env.SERPAPI_KEY;
   if (!apiKey) {
@@ -21,8 +25,8 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const candidates = await discoverCandidateUrls(jobTitle, country, apiKey);
-    const jobs = await extractJobs(candidates, jobTitle);
+    const candidates = await discoverCandidateUrls(jobTitle, country, apiKey, maxResults);
+    const jobs = await extractJobs(candidates, jobTitle, country, maxResults);
 
     let saved = jobs;
     if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Direct Source — Job Scanner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0F14;
+    --panel: #12181F;
+    --panel-hover: #161D26;
+    --border: #1F2A35;
+    --text: #E6EDF3;
+    --muted: #7C8B99;
+    --signal: #FFB100;
+    --verified: #3DDC97;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    min-height: 100vh;
+  }
+
+  .wrap {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 64px 24px 80px;
+  }
+
+  header {
+    margin-bottom: 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--signal);
+    margin-bottom: 14px;
+  }
+
+  h1 {
+    font-family: var(--font-display);
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.15;
+    margin: 0 0 12px;
+    font-weight: 700;
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 52ch;
+    line-height: 1.5;
+  }
+
+  .sub b { color: var(--text); font-weight: 600; }
+
+  form {
+    display: flex;
+    gap: 10px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+
+  input {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 13px 16px;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  input:focus { border-color: var(--signal); }
+
+  input#jobTitle { flex: 2; min-width: 200px; }
+  input#country { flex: 1; min-width: 140px; }
+
+  button {
+    background: var(--signal);
+    color: #17140A;
+    border: none;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 13px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  button:hover { opacity: 0.88; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .scan {
+    display: none;
+    margin-top: 28px;
+    padding: 16px 18px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .scan.active { display: block; }
+
+  .scan-row {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .scan-node {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+  }
+
+  .scan-node.hit {
+    border-color: var(--verified);
+    color: var(--verified);
+  }
+
+  .meta-line {
+    margin-top: 28px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    display: none;
+  }
+
+  .meta-line.active { display: block; }
+
+  .results {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .job-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    transition: background 0.15s ease;
+  }
+
+  .job-card:hover { background: var(--panel-hover); }
+
+  .job-info { min-width: 0; }
+
+  .job-title {
+    font-weight: 600;
+    font-size: 15px;
+    margin: 0 0 6px;
+    color: var(--text);
+  }
+
+  .job-meta {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .platform-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    color: var(--signal);
+  }
+
+  .new-badge {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--verified);
+  }
+
+  .apply-link {
+    flex-shrink: 0;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 9px 14px;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    white-space: nowrap;
+    transition: border-color 0.15s ease;
+  }
+
+  .apply-link:hover { border-color: var(--signal); }
+
+  .empty-state {
+    margin-top: 40px;
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    padding: 40px 20px;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+  }
+
+  .error-state {
+    margin-top: 24px;
+    padding: 14px 18px;
+    background: rgba(255, 90, 90, 0.08);
+    border: 1px solid rgba(255, 90, 90, 0.3);
+    border-radius: 8px;
+    color: #FF8A8A;
+    font-size: 13px;
+    font-family: var(--font-mono);
+    display: none;
+  }
+
+  .error-state.active { display: block; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow">Direct source only</div>
+      <h1>Skip the boards.<br>Go straight to the source.</h1>
+      <p class="sub">Give it a role and a country. It scans company career pages and their <b>ATS platforms directly</b> — no LinkedIn, no Indeed, no Naukrigulf, no aggregators.</p>
+    </header>
+
+    <form id="searchForm">
+      <input id="jobTitle" type="text" placeholder="Job title — e.g. Security Operations Manager" required />
+      <input id="country" type="text" placeholder="Country — e.g. UAE" />
+      <button type="submit" id="submitBtn">Scan</button>
+    </form>
+
+    <div class="scan" id="scanPanel">
+      <div>scanning platforms —</div>
+      <div class="scan-row" id="scanRow">
+        <span class="scan-node" data-node="greenhouse">Greenhouse</span>
+        <span class="scan-node" data-node="lever">Lever</span>
+        <span class="scan-node" data-node="ashby">Ashby</span>
+        <span class="scan-node" data-node="workday">Workday</span>
+        <span class="scan-node" data-node="smartrecruiters">SmartRecruiters</span>
+        <span class="scan-node" data-node="custom">Company sites</span>
+      </div>
+    </div>
+
+    <div class="error-state" id="errorState"></div>
+    <div class="meta-line" id="metaLine"></div>
+    <div class="results" id="results"></div>
+  </div>
+
+  <script>
+    const form = document.getElementById('searchForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const scanPanel = document.getElementById('scanPanel');
+    const scanRow = document.getElementById('scanRow');
+    const results = document.getElementById('results');
+    const metaLine = document.getElementById('metaLine');
+    const errorState = document.getElementById('errorState');
+
+    function resetScan() {
+      scanRow.querySelectorAll('.scan-node').forEach(n => n.classList.remove('hit'));
+    }
+
+    function runScanAnimation() {
+      resetScan();
+      const nodes = [...scanRow.querySelectorAll('.scan-node')];
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i >= nodes.length) { clearInterval(interval); return; }
+        nodes[i].classList.add('hit');
+        i++;
+      }, 350);
+      return interval;
+    }
+
+    function renderJobs(jobs) {
+      results.innerHTML = '';
+      if (!jobs.length) {
+        results.innerHTML = '<div class="empty-state">No direct listings matched. Try a broader title or a different country.</div>';
+        return;
+      }
+      for (const job of jobs) {
+        const card = document.createElement('div');
+        card.className = 'job-card';
+        card.innerHTML = `
+          <div class="job-info">
+            <p class="job-title">${escapeHtml(job.title)}</p>
+            <div class="job-meta">
+              <span class="platform-badge">${escapeHtml(job.platform)}</span>
+              <span>${escapeHtml(job.company)}</span>
+              <span>${escapeHtml(job.location || '')}</span>
+              ${job.isNew ? '<span class="new-badge">● new</span>' : ''}
+            </div>
+          </div>
+          <a class="apply-link" href="${job.link}" target="_blank" rel="noopener">Apply directly →</a>
+        `;
+        results.appendChild(card);
+      }
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const jobTitle = document.getElementById('jobTitle').value.trim();
+      const country = document.getElementById('country').value.trim();
+      if (!jobTitle) return;
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Scanning…';
+      scanPanel.classList.add('active');
+      errorState.classList.remove('active');
+      metaLine.classList.remove('active');
+      results.innerHTML = '';
+
+      const scanInterval = runScanAnimation();
+
+      try {
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobTitle, country })
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Search failed');
+
+        metaLine.textContent = `${data.candidatesFound} pages scanned · ${data.jobsExtracted} direct listings found`;
+        metaLine.classList.add('active');
+        renderJobs(data.jobs);
+      } catch (err) {
+        errorState.textContent = 'Scan failed: ' + err.message;
+        errorState.classList.add('active');
+      } finally {
+        clearInterval(scanInterval);
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Scan';
+        setTimeout(() => scanPanel.classList.remove('active'), 800);
+      }
+    });
+  </script>
+</body>
+</html>

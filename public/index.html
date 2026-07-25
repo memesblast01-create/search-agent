@@ -91,6 +91,20 @@
   input#jobTitle { flex: 2; min-width: 200px; }
   input#country { flex: 1; min-width: 140px; }
 
+  select#resultsWanted {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 13px 14px;
+    border-radius: 8px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  select#resultsWanted:focus { border-color: var(--signal); }
+
   button {
     background: var(--signal);
     color: #17140A;
@@ -260,6 +274,12 @@
     <form id="searchForm">
       <input id="jobTitle" type="text" placeholder="Job title — e.g. Security Operations Manager" required />
       <input id="country" type="text" placeholder="Country — e.g. UAE" />
+      <select id="resultsWanted">
+        <option value="10">10 results</option>
+        <option value="20" selected>20 results</option>
+        <option value="30">30 results</option>
+        <option value="50">50 results</option>
+      </select>
       <button type="submit" id="submitBtn">Scan</button>
     </form>
 
@@ -340,6 +360,7 @@
       e.preventDefault();
       const jobTitle = document.getElementById('jobTitle').value.trim();
       const country = document.getElementById('country').value.trim();
+      const resultsWanted = document.getElementById('resultsWanted').value;
       if (!jobTitle) return;
 
       submitBtn.disabled = true;
@@ -355,7 +376,7 @@
         const res = await fetch('/api/search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ jobTitle, country })
+          body: JSON.stringify({ jobTitle, country, resultsWanted })
         });
         const data = await res.json();
 
